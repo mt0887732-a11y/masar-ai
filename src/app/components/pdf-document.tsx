@@ -37,10 +37,6 @@ const getStyles = (template: string) => StyleSheet.create({
     color: "#444444",
     gap: 8
   },
-  clickableLink: {
-    color: template === 'executive' ? "#003366" : "#0066CC",
-    textDecoration: "underline"
-  },
   sectionContainer: {
     marginTop: 14
   },
@@ -106,15 +102,6 @@ const getStyles = (template: string) => StyleSheet.create({
   skillBadge: {
     fontSize: 9.5,
     lineHeight: 1.4
-  },
-  gridRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: 2
-  },
-  gridItem: {
-    width: "50%",
-    marginBottom: 4
   }
 });
 
@@ -124,46 +111,24 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
   if (!data) return null;
   const styles = getStyles(template);
 
-  const validExperience = data.experience?.filter((exp: any) => isValidString(exp.role) || isValidString(exp.organization) || isValidString(exp.bulletsText)) || [];
-  const validProjects = data.projects?.filter((proj: any) => isValidString(proj.title) || isValidString(proj.technologiesText) || isValidString(proj.bulletsText)) || [];
+  // الفلترة الهندسية المستندة حصراً على المخرجات الفعلية للـ API
+  const validExperience = data.experience?.filter((exp: any) => isValidString(exp.role) || isValidString(exp.company)) || [];
+  const validProjects = data.projects?.filter((proj: any) => isValidString(proj.title) || isValidString(proj.description)) || [];
   const validEducation = data.education?.filter((edu: any) => isValidString(edu.institution) || isValidString(edu.degree)) || [];
-  const validCertifications = data.certifications?.filter((cert: any) => isValidString(cert.name) || isValidString(cert.issuer)) || [];
-  const validExtracurriculars = data.extracurriculars?.filter((act: any) => isValidString(act.role) || isValidString(act.organization)) || [];
-  const validLanguages = data.languages?.filter((lang: any) => isValidString(lang.language)) || [];
+  const validCertifications = Array.isArray(data.certifications) ? data.certifications.filter((cert: string) => isValidString(cert)) : [];
+  const validSkills = Array.isArray(data.skills) ? data.skills : [];
 
   return (
-    <Document title={`${data.contact?.name || "Resume"}_CV`} author={data.contact?.name}>
+    <Document title={`${data.name || "Resume"}_CV`} author={data.name}>
       <Page size="A4" style={styles.page}>
         
         {/* HEADER */}
         <View style={styles.headerContainer}>
-          <Text style={styles.name}>{data.contact?.name || "Your Name"}</Text>
+          <Text style={styles.name}>{data.name || "Candidate Name"}</Text>
           <View style={styles.contactRow}>
-            {isValidString(data.contact?.phone) && <Text>{data.contact.phone}  |</Text>}
-            {isValidString(data.contact?.email) && <Text>{data.contact.email}  |</Text>}
-            {isValidString(data.contact?.location) && <Text>{data.contact.location}  |</Text>}
-            
-            {isValidString(data.contact?.linkedin) && (
-              <Link style={styles.clickableLink} src={data.contact.linkedin.includes("http") ? data.contact.linkedin : `https://${data.contact.linkedin}`}>
-                LinkedIn
-              </Link>
-            )}
-            {isValidString(data.contact?.github) && (
-              <>
-                <Text> | </Text>
-                <Link style={styles.clickableLink} src={data.contact.github.includes("http") ? data.contact.github : `https://${data.contact.github}`}>
-                  GitHub
-                </Link>
-              </>
-            )}
-            {isValidString(data.contact?.portfolio) && (
-              <>
-                <Text> | </Text>
-                <Link style={styles.clickableLink} src={data.contact.portfolio.includes("http") ? data.contact.portfolio : `https://${data.contact.portfolio}`}>
-                  Portfolio
-                </Link>
-              </>
-            )}
+            {isValidString(data.phone) && <Text>{data.phone}  |</Text>}
+            {isValidString(data.email) && <Text>{data.email}  |</Text>}
+            {isValidString(data.links) && <Text>{data.links}</Text>}
           </View>
         </View>
 
@@ -185,9 +150,9 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
                   <Text style={styles.entryTitle}>{exp.role}</Text>
                   <Text style={styles.entryDate}>{exp.period}</Text>
                 </View>
-                <Text style={styles.entrySubtitle}>{exp.organization}</Text>
+                <Text style={styles.entrySubtitle}>{exp.company}</Text>
                 <View style={styles.bulletList}>
-                  {(exp.actionBullets || exp.bulletsText?.split("\n") || []).map((bullet: string, idx: number) => (
+                  {(exp.responsibilities || []).map((bullet: string, idx: number) => (
                     bullet.trim() && (
                       <View key={idx} style={styles.bulletPoint}>
                         <Text style={styles.bulletMarker}>•</Text>
@@ -208,21 +173,13 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
             {validProjects.map((proj: any, index: number) => (
               <View key={index} style={{ marginBottom: 8 }}>
                 <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>
-                    {proj.title} 
-                    {proj.technologies && proj.technologies.length > 0 && ` (${proj.technologies.join(", ")})`}
-                    {proj.technologiesText && ` (${proj.technologiesText})`}
-                  </Text>
+                  <Text style={styles.entryTitle}>{proj.title}</Text>
                 </View>
                 <View style={styles.bulletList}>
-                  {(proj.actionBullets || proj.bulletsText?.split("\n") || []).map((bullet: string, idx: number) => (
-                    bullet.trim() && (
-                      <View key={idx} style={styles.bulletPoint}>
-                        <Text style={styles.bulletMarker}>•</Text>
-                        <Text style={styles.bulletContent}>{bullet.replace(/^•\s*/, "")}</Text>
-                      </View>
-                    )
-                  ))}
+                  <View style={styles.bulletPoint}>
+                    <Text style={styles.bulletMarker}>•</Text>
+                    <Text style={styles.bulletContent}>{proj.description}</Text>
+                  </View>
                 </View>
               </View>
             ))}
@@ -237,9 +194,9 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
               <View key={index} style={{ marginBottom: 4 }}>
                 <View style={styles.entryHeader}>
                   <Text style={styles.entryTitle}>{edu.institution}</Text>
-                  <Text style={styles.entryDate}>{edu.graduationYear}</Text>
+                  <Text style={styles.entryDate}>{edu.period}</Text>
                 </View>
-                <Text style={styles.entrySubtitle}>{edu.degree} {edu.major ? `in ${edu.major}` : ""}</Text>
+                <Text style={styles.entrySubtitle}>{edu.degree}</Text>
               </View>
             ))}
           </View>
@@ -248,43 +205,12 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
         {/* CERTIFICATIONS */}
         {validCertifications.length > 0 && (
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>CERTIFICATIONS</Text>
-            {validCertifications.map((cert: any, index: number) => (
-              <View key={index} style={{ marginBottom: 4 }}>
-                <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>{cert.name}</Text>
-                  <Text style={styles.entryDate}>{cert.date}</Text>
-                </View>
-                <Text style={styles.entrySubtitle}>{cert.issuer}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* EXTRACURRICULAR */}
-        {validExtracurriculars.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>LEADERSHIP & ACTIVITIES</Text>
-            {validExtracurriculars.map((act: any, index: number) => (
-              <View key={index} style={{ marginBottom: 4 }}>
-                <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle}>{act.role}</Text>
-                  <Text style={styles.entryDate}>{act.period}</Text>
-                </View>
-                <Text style={styles.entrySubtitle}>{act.organization}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* LANGUAGES */}
-        {validLanguages.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>LANGUAGES</Text>
-            <View style={styles.gridRow}>
-              {validLanguages.map((lang: any, index: number) => (
-                <View key={index} style={styles.gridItem}>
-                  <Text style={styles.entryTitle}>{lang.language}: <Text style={{fontWeight: 'normal'}}>{lang.proficiency}</Text></Text>
+            <Text style={styles.sectionTitle}>CERTIFICATIONS & COURSES</Text>
+            <View style={styles.bulletList}>
+              {validCertifications.map((cert: string, index: number) => (
+                <View key={index} style={styles.bulletPoint}>
+                  <Text style={styles.bulletMarker}>•</Text>
+                  <Text style={styles.bulletContent}>{cert}</Text>
                 </View>
               ))}
             </View>
@@ -292,12 +218,12 @@ export function ATSDocument({ data, template = "classic" }: { data: any, templat
         )}
 
         {/* SKILLS */}
-        {(isValidString(data.skillsText) || (data.skills && data.skills.length > 0)) && (
+        {validSkills.length > 0 && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>SKILLS</Text>
             <View style={styles.skillsContainer}>
               <Text style={styles.skillBadge}>
-                {data.skillsText ? data.skillsText : data.skills?.join(", ")}
+                {validSkills.join(" • ")}
               </Text>
             </View>
           </View>

@@ -1,40 +1,27 @@
-import { ClerkProvider, SignInButton, UserButton } from '@clerk/nextjs'
-import { auth } from '@clerk/nextjs/server'
-import './globals.css'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "@/app/components/Providers";
 
-export const metadata = {
-  title: 'Masar AI',
-  description: 'Enterprise Professional Identity Studio',
-}
+const inter = Inter({ subsets: ["latin"] });
 
-// تحويل الدالة إلى async لتتمكن من الاتصال بالخادم
-export default async function RootLayout({
+export const metadata: Metadata = {
+  title: "Masar AI - Resume Builder",
+  description: "ATS Resume Builder and Digital Portfolio Generator",
+};
+
+export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
-  // جلب حالة المستخدم من الخادم مباشرة قبل رندرة الصفحة
-  const { userId } = await auth();
-
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="bg-slate-950 min-h-screen">
-          <header className="flex justify-end items-center p-4 max-w-5xl mx-auto border-b border-slate-900/50">
-            {/* فحص شرطي هندسي: إذا كان هناك ID يظهر زر المستخدم، وإلا يظهر زر الدخول */}
-            {userId ? (
-              <UserButton />
-            ) : (
-              <SignInButton mode="modal">
-                <button className="text-xs font-bold bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-500 transition-all">
-                  Sign In / Register
-                </button>
-              </SignInButton>
-            )}
-          </header>
+    <html lang="ar" dir="rtl">
+      <body className={inter.className}>
+        <Providers>
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </Providers>
+      </body>
+    </html>
   );
 }
