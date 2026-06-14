@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@clerk/nextjs/server";
+import { SignInButton, UserButton } from "@clerk/nextjs";
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  // استخدام محرك Clerk للتحقق من حالة تسجيل الدخول على الخادم
+  const { userId } = await auth();
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans" dir="rtl">
@@ -17,14 +18,21 @@ export default async function Home() {
               <span className="font-bold text-xl text-slate-800">Masar AI</span>
             </div>
             <div className="flex items-center gap-4">
-              {session ? (
-                <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition-colors text-sm">
-                  لوحة التحكم
-                </Link>
+              {userId ? (
+                <>
+                  <Link href="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold transition-colors text-sm">
+                    لوحة التحكم
+                  </Link>
+                  {/* زر الحساب الخاص بـ Clerk لتسجيل الخروج وإدارة الملف */}
+                 <UserButton />
+                </>
               ) : (
-                <Link href="/api/auth/signin" className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold transition-colors text-sm">
-                  تسجيل الدخول
-                </Link>
+                /* زر تسجيل الدخول المدمج من Clerk */
+                <SignInButton mode="modal">
+                  <button className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold transition-colors text-sm">
+                    تسجيل الدخول
+                  </button>
+                </SignInButton>
               )}
             </div>
           </div>
@@ -58,7 +66,6 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* الخدمة 1 */}
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-100 transition-colors">
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 text-2xl font-bold">1</div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">مولد السير الذاتية (ATS)</h3>
@@ -67,7 +74,6 @@ export default async function Home() {
               </p>
             </div>
 
-            {/* الخدمة 2 */}
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-100 transition-colors">
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 text-2xl font-bold">2</div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">تحليل الفجوات (Gap Analysis)</h3>
@@ -76,13 +82,12 @@ export default async function Home() {
               </p>
             </div>
 
-            {/* الخدمة 3 */}
             <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-100 transition-colors opacity-75 relative overflow-hidden">
               <div className="absolute top-4 left-4 bg-slate-200 text-slate-600 text-xs font-bold px-2 py-1 rounded">قريباً</div>
               <div className="w-12 h-12 bg-slate-200 text-slate-500 rounded-xl flex items-center justify-center mb-6 text-2xl font-bold">3</div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">بناء المعرض الرقمي (Portfolio)</h3>
               <p className="text-slate-600 leading-relaxed">
-                تحويل مشاريعك (مثل التصميم الميكانيكي أو تطوير البرمجيات) إلى صفحات عرض رقمية احترافية لتقديمها للشركات بشكل مباشر.
+                تحويل مشاريعك إلى صفحات عرض رقمية احترافية لتقديمها للشركات بشكل مباشر.
               </p>
             </div>
           </div>
@@ -98,7 +103,6 @@ export default async function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* الباقة المجانية */}
             <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700">
               <h3 className="text-2xl font-bold mb-2">البداية (الأساسية)</h3>
               <div className="text-4xl font-extrabold mb-6">مجاناً</div>
@@ -112,7 +116,6 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* الباقة الاحترافية */}
             <div className="bg-blue-600 p-8 rounded-3xl border border-blue-500 relative transform md:-translate-y-4 shadow-2xl shadow-blue-900/50">
               <div className="absolute top-0 right-1/2 transform translate-x-1/2 -translate-y-1/2 bg-amber-400 text-amber-950 text-sm font-bold px-4 py-1 rounded-full">
                 الأكثر طلباً
